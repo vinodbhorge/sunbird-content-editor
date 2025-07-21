@@ -48,15 +48,10 @@ jobs:
       - name: Clone sunbird-content-plugins
         run: git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b release-5.2.0
 
-      - name: Install dependencies
+      - name: Install dependencies and build
         run: |
           npm install
-          cd app
           npm run bower-install
-          cd ..
-
-      - name: Build and package
-        run: |
           npm run package-core-plugins
           npm run build-plugins
           npm run build
@@ -69,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: content-editor
-          path: content-editor-${{ github.ref_name }}-${{ github.sha }}.zip
+          path: content-editor-${{ github.ref_name }}-${{ github.sha }}
 
       # --- Upload to Azure Blob Storage ---
       # - name: Upload to Azure Blob Storage
@@ -106,4 +101,3 @@ jobs:
       #     path: content-editor-test/
       #     destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
       #     credentials: ${{ secrets.GCP_CREDENTIALS }}
-      
