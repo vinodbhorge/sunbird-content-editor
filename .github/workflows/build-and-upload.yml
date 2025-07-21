@@ -59,12 +59,6 @@ jobs:
           ls -l
           cat index.html
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: content-editor
-          path: content-editor.zip
-
       # --- Upload to Azure Blob Storage ---
       # - name: Upload to Azure Blob Storage
       #   if: env.CLOUD_PROVIDER == 'azure'
@@ -93,10 +87,16 @@ jobs:
       #     DEST_DIR: 'content-editor/${{ github.ref_name }}-${{ github.sha }}/'
 
       # --- Upload to Google Cloud Storage ---
-      # - name: Upload to Google Cloud Storage
-      #   if: env.CLOUD_PROVIDER == 'gcp'
-      #   uses: google-github-actions/upload-cloud-storage@v1
-      #   with:
-      #     path: sunbird-content-editor/
-      #     destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
-      #     credentials: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Setup Google Cloud SDK
+        if: env.CLOUD_PROVIDER == 'gcp'
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          install_components: 'gsutil'
+          
+      - name: Authenticate and Upload to Google Cloud Storage
+        if: env.CLOUD_PROVIDER == 'gcp'
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > /tmp/service-account-key.json
+          gcloud auth activate-service-account --key-file=/tmp/service-account-key.json
+          gsutil -m cp -r content-editor/* gs://${{ secrets.GCP_BUCKET }}/content-editor-test/
+          rm -f /tmp/service-account-key.json
