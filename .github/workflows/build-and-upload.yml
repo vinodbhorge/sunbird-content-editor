@@ -50,15 +50,9 @@ jobs:
           bower install --force -V --allow-root
           cd ..
 
-      - name: Package core plugins
-        run: gulp packageCorePlugins
-
-      - name: Build plugins
-        run: npm run build-plugins
-
       - name: Build main project
         run: |
-          npm run build
+          npm run build-npm-pkg
           ls -l
 
       - name: Upload build artifact
