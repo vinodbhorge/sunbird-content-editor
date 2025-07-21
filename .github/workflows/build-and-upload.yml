@@ -61,14 +61,11 @@ jobs:
           npm run build
           ls -l
 
-      - name: Create build artifact (zip)
-        run: zip -r content-editor-${{ github.ref_name }}-${{ github.sha }}.zip sunbird-content-editor
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: content-editor
-          path: content-editor-${{ github.ref_name }}-${{ github.sha }}.zip
+          path: content-editor.zip
 
       # --- Upload to Azure Blob Storage ---
       # - name: Upload to Azure Blob Storage
