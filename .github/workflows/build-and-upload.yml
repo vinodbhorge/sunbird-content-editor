@@ -2,8 +2,8 @@ name: Build and Upload Content Editor
 
 on:
   push:
-    tags:
-      - '*'  # Triggers on any tag
+    branches:
+      - '*'
 
 jobs:
   build-and-upload:
