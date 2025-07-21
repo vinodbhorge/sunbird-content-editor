@@ -2,8 +2,8 @@ name: Build and Upload Content Editor
 
 on:
   push:
-    branches:
-      - '*'
+    tags:
+      - '*'  # Triggers on any tag
 
 jobs:
   build-and-upload:
@@ -15,27 +15,16 @@ jobs:
       framework_version_number: ${{ github.ref_name }}
       editor_version_number: ${{ github.ref_name }}
       build_number: ${{ github.sha }}
-      CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Cache node modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-
-      - name: Cache bower components
-        uses: actions/cache@v3
-        with:
-          path: app/bower_components
-          key: ${{ runner.os }}-bower-${{ hashFiles('app/bower.json') }}
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libpng-dev google-chrome-stable
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -45,23 +34,34 @@ jobs:
         run: npm install -g bower@1.8.14 gulp@3.9.1
 
       - name: Clone sunbird-content-plugins
-        run: git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b release-5.2.0
+        run: git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b ${{ github.ref_name }}
 
-      - name: Make build.sh executable
-        run: chmod +x build.sh
-
-      - name: Run build.sh script
-        run: ./build.sh ${{ github.ref_name }} ${{ github.sha }}
-
-      - name: Create build artifact (zip)
+      - name: Clean previous build artifacts
         run: |
-          zip -r content-editor-${{ github.ref_name }}-${{ github.sha }}.zip content-editor
+          rm -rf ansible/content-editor.zip
+          rm -rf content-editor
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: content-editor
-          path: content-editor
+      - name: Clean npm cache and install dependencies
+        run: |
+          npm cache clean --force
+          npm install
+
+      - name: Install bower dependencies
+        run: |
+          cd app
+          bower cache clean --allow-root
+          bower prune -f --allow-root
+          bower install --force -V --allow-root
+          cd ..
+
+      - name: Package core plugins
+        run: gulp packageCorePlugins
+
+      - name: Build plugins
+        run: npm run build-plugins
+
+      - name: Build main project
+        run: npm run build
 
       # --- Upload to Azure Blob Storage ---
       # - name: Upload to Azure Blob Storage
@@ -91,10 +91,10 @@ jobs:
       #     DEST_DIR: 'content-editor/${{ github.ref_name }}-${{ github.sha }}/'
 
       # --- Upload to Google Cloud Storage ---
-      # - name: Upload to Google Cloud Storage
-      #   if: env.CLOUD_PROVIDER == 'gcp'
-      #   uses: google-github-actions/upload-cloud-storage@v1
-      #   with:
-      #     path: content-editor-test/
-      #     destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
-      #     credentials: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Upload to Google Cloud Storage
+        if: env.CLOUD_PROVIDER == 'gcp'
+        uses: google-github-actions/upload-cloud-storage@v1
+        with:
+          path: content-editor-test/
+          destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
+          credentials: ${{ secrets.GCP_CREDENTIALS }}
