@@ -32,37 +32,26 @@ jobs:
           path: app/bower_components
           key: ${{ runner.os }}-bower-${{ hashFiles('app/bower.json') }}
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpng-dev google-chrome-stable
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Set environment variables
-        run: |
-          echo "framework_version_number=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "editorType=contentEditor" >> $GITHUB_ENV
-          echo "editor_version_number=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "build_number=${{ github.sha }}" >> $GITHUB_ENV
-          echo "CHROME_BIN=google-chrome" >> $GITHUB_ENV
+      - name: Install global npm tools
+        run: npm install -g bower@1.8.14 gulp@3.9.1
 
-      - name: Clean up previous builds
-        run: |
-          rm -rf ansible/content-editor.zip
-          rm -rf content-editor
+      - name: Clone sunbird-content-plugins
+        run: git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b release-5.2.0
 
-      - name: Install system dependencies (build-essential, libpng-dev)
-        run: sudo apt-get install -y build-essential libpng-dev
+      - name: Make build.sh executable
+        run: chmod +x build.sh
 
-      - name: Clean npm cache
-        run: npm cache clean --force
-
-      - name: Install dependencies and build
-        run: |
-          npm install
-          npm run bower-install
-          npm run package-core-plugins
-          npm run build-plugins
-          npm run build
+      - name: Run build.sh script
+        run: ./build.sh ${{ github.ref_name }} ${{ github.sha }}
 
       - name: Create build artifact (zip)
         run: |
