@@ -15,6 +15,7 @@ jobs:
       framework_version_number: ${{ github.ref_name }}
       editor_version_number: ${{ github.ref_name }}
       build_number: ${{ github.sha }}
+      CLOUD_PROVIDER: gcp
 
     steps:
       - name: Checkout repository
@@ -95,6 +96,6 @@ jobs:
         if: env.CLOUD_PROVIDER == 'gcp'
         uses: google-github-actions/upload-cloud-storage@v1
         with:
-          path: content-editor-test/
+          path: sunbird-content-editor/
           destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
           credentials: ${{ secrets.GCP_CREDENTIALS }}
