@@ -52,6 +52,7 @@ jobs:
 
       - name: Build main project
         run: |
+          npm install gulp-gzip --save-dev
           npm run build-npm-pkg
           ls -l
 
