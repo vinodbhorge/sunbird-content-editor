@@ -378,7 +378,7 @@ module.exports = (env, argv) => {
                 },
                 canPrint: true
             }),
-            new ZipPlugin({
+            ...(process.env.ENABLE_WEBPACK_ZIP === 'true' ? [new ZipPlugin({
                 path: path.join(__dirname, '.'),
                 filename: ZIP_FILE_NAME,
                 fileOptions: {
@@ -404,7 +404,7 @@ module.exports = (env, argv) => {
                 zipOptions: {
                     forceZip64Format: false,
                 },
-            }),
+            })] : []),
             new OnBuildSuccess(function(stats) {
                 if (env && env.channel.toUpperCase() === 'NPM_PACKAGE') {
                     build_npm_package();
