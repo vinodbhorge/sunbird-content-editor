@@ -50,14 +50,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm install
           cd app
-          bower install --force -V --allow-root
+          npm run bower-install
           cd ..
 
       - name: Build and package
         run: |
-          gulp packageCorePlugins
+          npm run package-core-plugins
           npm run build-plugins
           npm run build
 
@@ -103,6 +103,6 @@ jobs:
       #   if: env.CLOUD_PROVIDER == 'gcp'
       #   uses: google-github-actions/upload-cloud-storage@v1
       #   with:
-      #     path: content-editor/
+      #     path: content-editor-test/
       #     destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
       #     credentials: ${{ secrets.GCP_CREDENTIALS }}
