@@ -37,11 +37,6 @@ jobs:
       - name: Clone sunbird-content-plugins
         run: git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b release-5.2.0
 
-      - name: Clean previous build artifacts
-        run: |
-          rm -rf ansible/content-editor.zip
-          rm -rf content-editor
-
       - name: Clean npm cache and install dependencies
         run: |
           npm cache clean --force
@@ -62,7 +57,18 @@ jobs:
         run: npm run build-plugins
 
       - name: Build main project
-        run: npm run build
+        run: |
+          npm run build
+          ls -l
+
+      - name: Create build artifact (zip)
+        run: zip -r content-editor-${{ github.ref_name }}-${{ github.sha }}.zip sunbird-content-editor
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-editor
+          path: content-editor-${{ github.ref_name }}-${{ github.sha }}.zip
 
       # --- Upload to Azure Blob Storage ---
       # - name: Upload to Azure Blob Storage
@@ -92,10 +98,10 @@ jobs:
       #     DEST_DIR: 'content-editor/${{ github.ref_name }}-${{ github.sha }}/'
 
       # --- Upload to Google Cloud Storage ---
-      - name: Upload to Google Cloud Storage
-        if: env.CLOUD_PROVIDER == 'gcp'
-        uses: google-github-actions/upload-cloud-storage@v1
-        with:
-          path: sunbird-content-editor/
-          destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
-          credentials: ${{ secrets.GCP_CREDENTIALS }}
+      # - name: Upload to Google Cloud Storage
+      #   if: env.CLOUD_PROVIDER == 'gcp'
+      #   uses: google-github-actions/upload-cloud-storage@v1
+      #   with:
+      #     path: sunbird-content-editor/
+      #     destination: ${{ secrets.GCP_BUCKET }}/content-editor-${{ github.ref_name }}-${{ github.sha }}/
+      #     credentials: ${{ secrets.GCP_CREDENTIALS }}
