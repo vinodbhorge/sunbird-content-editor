@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: 10.24.1
+      CHROME_BIN: google-chrome
+      editorType: contentEditor
+      framework_version_number: ${{ github.ref_name }}
+      editor_version_number: ${{ github.ref_name }}
+      build_number: ${{ github.sha }}
       CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
     steps:
       - name: Checkout repository
