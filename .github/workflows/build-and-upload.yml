@@ -32,14 +32,10 @@ jobs:
           path: app/bower_components
           key: ${{ runner.os }}-bower-${{ hashFiles('app/bower.json') }}
 
-      - name: Set up NVM and Node.js
-        run: |
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-          nvm install ${{ env.NODE_VERSION }}
-          nvm use ${{ env.NODE_VERSION }}
-          node -v
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Set environment variables
         run: |
